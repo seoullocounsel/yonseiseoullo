@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>연세서울로심리상담센터</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue-deep: #002D6E;
+      --blue-mid:  #1A4FA0;
+      --blue-soft: #EEF3FB;
+      --accent:    #4A7FD4;
+      --text-dark: #1A1E2E;
+      --text-mid:  #4B5369;
+      --text-light:#8A93AD;
+      --border:    #E2E8F4;
+      --white:     #FFFFFF;
+      --bg:        #F7F9FD;
+      --radius:    16px;
+      --gap:       16px;
+    }
+    html, body { font-family: 'Pretendard', -apple-system, sans-serif; color: var(--text-dark); -webkit-text-size-adjust: 100%; }
+
+    /* 배경 이미지 — 자연/힐링 분위기 */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      background-image: url('./bg.webp');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    /* 반투명 오버레이 — 카드/텍스트 가독성 확보 */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background: rgba(240, 246, 255, 0.87);
+    }
+
+    /* ── 애니메이션 ── */
+    @keyframes fadeIn  { from{opacity:0}              to{opacity:1} }
+    @keyframes fadeUp  { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes floatY  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+    .anim-fade { animation: fadeIn  0.5s ease both; }
+    .anim-up   { animation: fadeUp  0.5s ease both; }
+    .float     { animation: floatY  3s ease-in-out infinite; }
+
+    /* ── 공통 레이아웃 ── */
+    .container  { width: 100%; max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+    .main-wrap  { padding: 32px 16px 60px; max-width: 1100px; margin: 0 auto; }
+
+    /* ── NAV ── */
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(255,255,255,0.80);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(226,232,244,0.6);
+      box-shadow: 0 1px 10px rgba(0,45,110,.06);
+    }
+    .nav-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 60px; padding: 0 16px;
+    }
+    .logo       { display:flex; align-items:center; gap:8px; cursor:pointer; text-decoration:none; }
+    .logo-text  { display:flex; flex-direction:column; line-height:1.15; }
+    .logo-main  { font-size:15px; font-weight:800; color:var(--blue-deep); letter-spacing:-.02em; }
+    .logo-sub   { font-size:10px; font-weight:500; color:var(--text-mid); letter-spacing:.04em; }
+
+    /* 데스크톱 nav 링크 */
+    .nav-links  { display:none; gap:4px; align-items:center; }
+    .nav-btn    { font-size:14px; font-weight:600; padding:6px 14px; border-radius:8px; border:none; background:none; cursor:pointer; color:var(--text-mid); transition:background .2s,color .2s; font-family:inherit; }
+    .nav-btn:hover   { background:var(--blue-soft); color:var(--blue-deep); }
+    .nav-btn.active  { background:var(--blue-soft); color:var(--blue-deep); }
+    .nav-cta    { margin-left:8px; background:#FEE500; color:#3C1E1E; font-weight:800; font-size:13px; padding:9px 16px; border-radius:8px; text-decoration:none; display:flex; align-items:center; gap:5px; white-space:nowrap; }
+
+    /* 햄버거 */
+    .ham-btn    { border:none; background:none; cursor:pointer; padding:6px; color:var(--text-dark); display:flex; }
+    .mobile-menu{ background:white; border-top:1px solid var(--border); padding:12px 16px 16px; }
+    .mobile-nav-btn { display:block; width:100%; text-align:left; padding:13px 16px; border-radius:10px; border:none; cursor:pointer; font-weight:600; font-size:15px; margin-bottom:4px; font-family:inherit; transition:background .15s; }
+    .mobile-nav-btn.active  { background:var(--blue-soft); color:var(--blue-deep); }
+    .mobile-nav-btn:not(.active) { background:transparent; color:var(--text-mid); }
+
+    /* ── 카드 ── */
+    .card { background:rgba(255,255,255,0.82); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:1px solid rgba(226,232,244,0.7); border-radius:var(--radius); }
+
+    /* ── 라벨 태그 ── */
+    .label-tag { display:inline-block; background:var(--blue-soft); color:var(--blue-mid); font-size:11px; font-weight:700; letter-spacing:.07em; padding:5px 13px; border-radius:100px; margin-bottom:14px; }
+
+    /* ── 버튼 ── */
+    .btn-primary { background:var(--blue-deep); color:white; border-radius:10px; font-weight:700; padding:14px 24px; display:inline-flex; align-items:center; justify-content:center; gap:8px; border:none; cursor:pointer; font-size:15px; font-family:inherit; text-decoration:none; transition:background .2s; width:100%; }
+    .btn-primary:hover { background:var(--blue-mid); }
+    .btn-outline { background:transparent; color:var(--blue-deep); border:1.5px solid var(--blue-deep); border-radius:10px; font-weight:700; padding:13px 24px; display:inline-flex; align-items:center; justify-content:center; gap:8px; font-size:15px; font-family:inherit; text-decoration:none; transition:background .2s; width:100%; }
+    .btn-outline:hover { background:var(--blue-soft); }
+    .btn-row { display:flex; flex-direction:column; gap:10px; }
+
+    /* ── 아이콘 박스 ── */
+    .icon-box { background:var(--blue-soft); border-radius:10px; padding:9px; display:inline-flex; flex-shrink:0; }
+
+    /* ── 섹션 헤더 ── */
+    .section-head { text-align:center; margin-bottom:32px; }
+    .section-head h1 { font-size:clamp(18px,4vw,32px); font-weight:900; color:var(--blue-deep); letter-spacing:-.03em; line-height:1.15; margin-bottom:12px; }
+    .section-head h2 { font-size:clamp(22px,5vw,40px); font-weight:900; letter-spacing:-.03em; line-height:1.2; margin-bottom:10px; }
+    .section-head p  { font-size:15px; color:var(--text-mid); line-height:1.8; }
+
+    /* ── 상담진 이력 ── */
+    .cred-item { display:flex; gap:14px; align-items:flex-start; margin-bottom:22px; }
+    .cred-item:last-child { margin-bottom:0; }
+    .cred-title { font-weight:700; font-size:15px; color:var(--text-dark); margin-bottom:3px; }
+    .cred-sub   { font-size:13px; color:var(--text-light); }
+
+    /* ── 인용 카드 ── */
+    .quote-card { background:linear-gradient(135deg,#1A4FA0 0%,#002D6E 100%); border-radius:var(--radius); padding:32px; color:white; position:relative; overflow:hidden; }
+    .quote-card::before { content:''; position:absolute; top:-50px; right:-50px; width:160px; height:160px; border-radius:50%; background:rgba(255,255,255,.04); }
+    .quote-text { font-size:16px; font-weight:300; line-height:1.9; color:rgba(255,255,255,.92); margin-top:16px; }
+    .quote-by   { margin-top:20px; font-size:12px; font-weight:600; letter-spacing:.12em; color:rgba(255,255,255,.4); }
+
+    /* ── CTA 섹션 ── */
+    .cta-box { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:32px 24px; text-align:center; }
+    .cta-box p { font-size:15px; font-weight:700; color:var(--blue-deep); margin-bottom:6px; }
+    .cta-box small { font-size:13px; color:var(--text-light); display:block; margin-bottom:24px; line-height:1.6; }
+
+    /* ── 서비스 카드 ── */
+    .service-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:32px; }
+    .service-card { padding:20px 16px; }
+    .service-card h3 { font-weight:800; font-size:15px; color:var(--text-dark); margin-bottom:6px; margin-top:12px; }
+    .service-card p  { font-size:13px; color:var(--text-mid); line-height:1.65; }
+
+    /* ── 프로그램 박스 ── */
+    .program-box { background:var(--blue-soft); border-radius:var(--radius); padding:28px 20px; }
+    .program-box h3 { font-size:clamp(19px,4vw,32px); font-weight:900; color:var(--blue-deep); letter-spacing:-.02em; line-height:1.3; margin-bottom:12px; }
+    .program-box p  { font-size:14px; color:var(--text-mid); line-height:1.85; margin-bottom:20px; }
+    .program-tags { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .program-tag  { background:white; border-radius:10px; padding:11px 12px; display:flex; align-items:center; gap:8px; border:1px solid var(--border); font-weight:600; font-size:13px; color:var(--blue-deep); }
+    .tag-dot { background:var(--blue-deep); border-radius:50%; width:18px; height:18px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+    /* ── 운영시간 ── */
+    .info-row { display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--border); }
+    .info-row:last-child { border-bottom:none; }
+    .time-label { font-size:14px; color:var(--text-mid); font-weight:500; }
+    .time-value { font-size:15px; font-weight:800; color:var(--blue-deep); }
+    .time-closed{ font-size:14px; font-weight:700; color:#E53E3E; background:#FFF5F5; padding:4px 11px; border-radius:6px; }
+    .notice-box { margin-top:20px; background:var(--blue-soft); border-radius:12px; padding:14px 16px; font-size:13px; color:var(--blue-mid); font-weight:500; line-height:1.7; }
+
+    /* ── 센터 정보 ── */
+    .center-info { padding:24px; margin-bottom:12px; }
+    .info-label  { font-size:10px; font-weight:700; color:var(--text-light); letter-spacing:.1em; text-transform:uppercase; margin-bottom:6px; }
+    .info-addr   { font-weight:700; font-size:15px; line-height:1.65; color:var(--text-dark); margin-bottom:4px; }
+    .info-sub    { font-size:12px; color:var(--accent); font-weight:600; }
+    .info-tel    { font-weight:800; font-size:20px; color:var(--blue-deep); letter-spacing:-.02em; margin-bottom:4px; }
+    .info-tel-sub{ font-size:12px; color:var(--text-light); }
+    .info-grid   { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+
+    /* ── 예약 채널 ── */
+    .channel-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+    .ch-kakao { background:#FEE500; border-radius:14px; padding:20px 16px; display:flex; flex-direction:column; gap:10px; }
+    .ch-naver { background:#03C75A; border-radius:14px; padding:20px 16px; display:flex; flex-direction:column; gap:10px; color:white; }
+    .ch-title-kakao { font-weight:800; font-size:13px; color:#3C1E1E; }
+    .ch-title-naver { font-weight:800; font-size:13px; color:white; }
+    .ch-desc-kakao  { font-size:11px; color:rgba(60,30,30,.65); font-weight:500; line-height:1.5; }
+    .ch-desc-naver  { font-size:11px; color:rgba(255,255,255,.8); font-weight:500; line-height:1.5; }
+    .ch-btn-kakao { background:#3C1E1E; color:white; font-weight:800; font-size:13px; padding:10px; border-radius:9px; text-decoration:none; text-align:center; display:flex; align-items:center; justify-content:center; gap:4px; }
+    .ch-btn-naver { background:white; color:#03C75A; font-weight:800; font-size:13px; padding:10px; border-radius:9px; text-decoration:none; text-align:center; display:flex; align-items:center; justify-content:center; gap:4px; }
+    .ch-icon-kakao { background:#3C1E1E; border-radius:7px; padding:5px; display:inline-flex; }
+    .ch-icon-naver { background:white; border-radius:7px; padding:5px; display:inline-flex; }
+    .ch-head { display:flex; align-items:center; gap:7px; }
+
+    /* ── 지도 ── */
+    .map-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding:0 4px; }
+    .map-title  { font-weight:800; font-size:15px; color:var(--text-dark); }
+    .map-link   { font-size:13px; font-weight:700; color:#03C75A; text-decoration:none; display:flex; align-items:center; gap:4px; }
+    .map-area   { background:linear-gradient(135deg,#EEF3FB,#dce8f8); border-radius:14px; height:260px; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; cursor:pointer; }
+    .map-area::before { content:''; position:absolute; inset:0; background-image:radial-gradient(var(--accent) 1px,transparent 0); background-size:26px 26px; opacity:.06; }
+    .map-pin-wrap { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:14px; }
+    .map-pin-circle { background:white; border-radius:50%; padding:16px; box-shadow:0 8px 28px rgba(0,45,110,.15); }
+    .map-label  { background:white; border-radius:12px; padding:12px 20px; text-align:center; box-shadow:0 4px 18px rgba(0,45,110,.10); border:1px solid var(--border); }
+    .map-label p  { font-weight:800; font-size:15px; color:var(--blue-deep); }
+    .map-label small { font-size:11px; color:var(--text-light); font-weight:500; margin-top:3px; display:block; }
+    .map-hint   { font-size:10px; font-weight:700; color:var(--text-light); letter-spacing:.1em; text-transform:uppercase; }
+
+    /* ── 푸터 ── */
+    .footer { background:rgba(15,25,41,0.92); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); color:#8A99B8; padding:48px 16px 32px; }
+    .footer-grid { display:grid; gap:36px; margin-bottom:36px; }
+    .footer-logo { opacity:.55; margin-bottom:14px; }
+    .footer-desc { font-size:13px; line-height:1.85; }
+    .footer-h { font-weight:800; color:white; font-size:12px; margin-bottom:16px; letter-spacing:.1em; text-transform:uppercase; }
+    .footer-contact { display:flex; flex-direction:column; gap:11px; font-size:13px; }
+    .footer-contact-row { display:flex; align-items:flex-start; gap:9px; line-height:1.6; }
+    .footer-social { display:flex; gap:8px; margin-bottom:20px; }
+    .social-btn { font-weight:700; font-size:12px; padding:8px 14px; border-radius:8px; text-decoration:none; }
+    .footer-legal { display:flex; gap:14px; font-size:12px; padding-top:16px; border-top:1px solid rgba(255,255,255,.07); }
+    .footer-legal button { background:none; border:none; color:#8A99B8; cursor:pointer; font-family:inherit; font-size:12px; }
+    .footer-copy { border-top:1px solid rgba(255,255,255,.06); padding-top:20px; text-align:center; font-size:10px; letter-spacing:.18em; text-transform:uppercase; opacity:.22; font-weight:600; }
+
+    /* ── 데스크톱 (768px+) ── */
+    @media (min-width: 768px) {
+      .container  { padding: 0 32px; }
+      .main-wrap  { padding: 56px 32px 80px; }
+      .nav-inner  { height:68px; padding:0 32px; }
+      .nav-links  { display:flex; }
+      .ham-btn    { display:none; }
+      .logo-main  { font-size:16px; }
+      .logo-sub   { font-size:11px; }
+
+      /* 두 컬럼 그리드 */
+      .two-col    { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+      .three-col  { display:grid; grid-template-columns:1fr 1fr 1fr; gap:24px; }
+
+      .btn-primary, .btn-outline { width:auto; }
+      .btn-row { flex-direction:row; justify-content:center; }
+
+      .section-head { margin-bottom:48px; }
+      .section-head p { font-size:17px; }
+
+      .cred-title { font-size:16px; }
+      .quote-card { padding:48px; }
+      .quote-text { font-size:18px; }
+
+      .service-grid { grid-template-columns:1fr 1fr; gap:16px; }
+      .service-card h3 { font-size:16px; }
+      .service-card p  { font-size:14px; }
+
+      .program-box { padding:48px; display:flex; gap:40px; align-items:center; }
+      .program-box-text { flex:1 1 280px; }
+      .program-float { flex:0 0 auto; display:flex; justify-content:center; }
+
+      .center-info { padding:32px; }
+      .info-tel    { font-size:22px; }
+
+      .channel-grid { grid-template-columns:1fr 1fr; }
+      .map-area     { height:360px; }
+
+      .footer { padding:64px 32px 40px; }
+      .footer-grid { grid-template-columns:1.4fr 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+  const { useState } = React;
+
+  /* ── SVG 아이콘 ── */
+  const I = ({ n, s=20, c='currentColor', f='none' }) => {
+    const base = { display:'inline-block', verticalAlign:'middle', flexShrink:0 };
+    const p = { xmlns:'http://www.w3.org/2000/svg', width:s, height:s, viewBox:'0 0 24 24', fill:f, stroke:c, strokeWidth:'2', strokeLinecap:'round', strokeLinejoin:'round', style:base };
+    const m = {
+      Menu:    <svg {...p}><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>,
+      X:       <svg {...p}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+      Clock:   <svg {...p}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+      Pin:     <svg {...p}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>,
+      Phone:   <svg {...p}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>,
+      Chev:    <svg {...p}><polyline points="9 18 15 12 9 6"/></svg>,
+      Quote:   <svg {...p}><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>,
+      Heart:   <svg {...p}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
+      Award:   <svg {...p}><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>,
+      Users:   <svg {...p}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+      Chat:    <svg {...p}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
+      Link:    <svg {...p}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>,
+      Share:   <svg {...p}><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>,
+      Book:    <svg {...p}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>,
+      Grad:    <svg {...p}><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>,
+    };
+    return m[n] || null;
+  };
+
+  const Logo = ({ dim }) => (
+    <div className="logo">
+      <svg width="36" height="36" viewBox="0 0 100 100" fill="none">
+        <rect x="5" y="5" width="70" height="70" rx="15" fill={dim?'#444':'#002D6E'} />
+        <path d="M75 15C85 15 95 25 95 45C95 65 85 85 65 95C65 85 70 75 75 65L75 15Z" fill={dim?'#777':'#4A7FD4'} />
+        <circle cx="25" cy="30" r="4" fill="white" />
+        <circle cx="55" cy="30" r="4" fill="white" />
+        <path d="M25 45Q40 55 55 45" stroke="white" strokeWidth="4" strokeLinecap="round" fill="none" />
+      </svg>
+      <div className="logo-text">
+        <span className="logo-main" style={dim?{color:'#888'}:{}}  >연세서울로</span>
+        <span className="logo-sub"  style={dim?{color:'#666'}:{}}  >심리상담센터</span>
+      </div>
+    </div>
+  );
+
+  const NAVER_MAP = 'https://map.naver.com/v5/search/연세서울로심리상담센터';
+
+  const App = () => {
+    const [tab, setTab]   = useState('intro');
+    const [menu, setMenu] = useState(false);
+    const nav = [
+      { id:'intro',       label:'센터 소개' },
+      { id:'services',    label:'이용 내용' },
+      { id:'reservation', label:'이용안내/예약' },
+    ];
+    const go = id => { setTab(id); setMenu(false); window.scrollTo({top:0,behavior:'smooth'}); };
+
+    return (
+      <>
+        {/* ── NAV ── */}
+        <nav className="nav">
+          <div className="nav-inner">
+            <div onClick={() => go('intro')}><Logo /></div>
+
+            {/* 데스크톱 */}
+            <div className="nav-links">
+              {nav.map(n => (
+                <button key={n.id} onClick={() => go(n.id)} className={`nav-btn${tab===n.id?' active':''}`}>{n.label}</button>
+              ))}
+              <a href="http://pf.kakao.com/_xixbJJxj/chat" target="_blank" rel="noopener noreferrer" className="nav-cta">
+                <I n="Chat" s={14} c="#3C1E1E" /> 상담 예약
+              </a>
+            </div>
+
+            {/* 햄버거 */}
+            <button className="ham-btn" onClick={() => setMenu(!menu)}>
+              <I n={menu?'X':'Menu'} s={24} />
+            </button>
+          </div>
+
+          {menu && (
+            <div className="mobile-menu">
+              {nav.map(n => (
+                <button key={n.id} onClick={() => go(n.id)} className={`mobile-nav-btn${tab===n.id?' active':''}`}>{n.label}</button>
+              ))}
+              <a href="http://pf.kakao.com/_xixbJJxj/chat" target="_blank" rel="noopener noreferrer"
+                style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, marginTop:8, background:'#FEE500', color:'#3C1E1E', fontWeight:800, fontSize:14, padding:'13px', borderRadius:10, textDecoration:'none' }}>
+                <I n="Chat" s={15} c="#3C1E1E" /> 카카오톡으로 상담 예약
+              </a>
+            </div>
+          )}
+        </nav>
+
+        {/* ── MAIN ── */}
+        <main className="main-wrap">
+
+          {/* ══ TAB 1 센터 소개 ══ */}
+          {tab==='intro' && (
+            <div className="anim-fade">
+              <div className="section-head">
+                <div className="label-tag">나라는 존재 자체로 행복한 세상을 꿈꿉니다</div>
+                <h1>연세서울로<br className="pc-hide" />심리상담센터</h1>
+                <p>연세서울로심리상담센터는 상담, 교육, 심리 분야의 전문적 교육을 받은<br />
+                  <strong style={{color:'var(--blue-deep)',fontWeight:700}}>석박사 상담 전문가</strong>들이 함께 운영하는 심리상담 전문 기관입니다.</p>
+              </div>
+
+              <div className="two-col" style={{marginBottom:24}}>
+                {/* 이력 카드 */}
+                <div className="card" style={{padding:'28px 24px'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:24}}>
+                    <div className="icon-box"><I n="Award" s={18} c="var(--blue-deep)" /></div>
+                    <h2 style={{fontWeight:800,fontSize:17,color:'var(--text-dark)'}}>상담진 이력</h2>
+                  </div>
+                  {[
+                    { icon:'Grad', title:'연세대학교 교육학과 / 심리학과', sub:'석사 · 박사 학위 수여' },
+                    { icon:'Award', title:'한국상담심리학회 상담심리사 1급/2급', sub:'보건복지부 / 학회 공인 자격' },
+                    { icon:'Book',  title:'청소년상담사 / 전문상담교사 자격', sub:'' },
+                  ].map((item,i) => (
+                    <div key={i} className="cred-item">
+                      <div className="icon-box"><I n={item.icon} s={17} c="var(--blue-deep)" /></div>
+                      <div>
+                        <p className="cred-title">{item.title}</p>
+                        {item.sub && <p className="cred-sub">{item.sub}</p>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* 인용 카드 */}
+                <div className="quote-card">
+                  <I n="Quote" s={28} c="rgba(255,255,255,0.25)" />
+                  <p className="quote-text">
+                    "대학원 시절 함께했던 동료들이<br />
+                    <span style={{fontWeight:700,color:'#93BFFF'}}>서울역 인근</span>에 처음으로 둥지를 틀었습니다.<br />
+                    책임감과 성실함으로 최선을 다하겠습니다."
+                  </p>
+                  <p className="quote-by">— 연세서울로 상담진 일동</p>
+                </div>
+              </div>
+
+              {/* CTA */}
+              <div className="cta-box">
+                <p>🌈 연세서울로는 모든 사회적 소수자를 지지합니다.</p>
+                <small>다양성을 존중하며, 누구든 편안하게 상담받을 수 있는 공간을 만들어 갑니다.</small>
+                <div className="btn-row">
+                  <button className="btn-primary" onClick={() => go('reservation')}>
+                    상담 예약 안내 <I n="Chev" s={16} c="white" />
+                  </button>
+                  <a href="https://blog.naver.com/yonseiseoullo" target="_blank" rel="noopener noreferrer" className="btn-outline">
+                    네이버 블로그 <I n="Link" s={15} c="var(--blue-deep)" />
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ══ TAB 2 이용 내용 ══ */}
+          {tab==='services' && (
+            <div className="anim-up">
+              <div className="section-head">
+                <div className="label-tag">상담 안내</div>
+                <h2>심리상담, 언제 필요할까요?</h2>
+                <p>마음이 보내는 신호에 귀 기울여주세요.</p>
+              </div>
+
+              <div className="service-grid">
+                {[
+                  { icon:'Heart', title:'심리적 어려움',     desc:'마음이 자꾸만 아프고 일상이 힘들게 느껴질 때' },
+                  { icon:'Users', title:'정서적 불안/우울',  desc:'감정 조절이 어렵고 우울함이나 불안이 지속될 때' },
+                  { icon:'Clock', title:'수면 및 활력 저하', desc:'잠을 이루기 어렵고 이전처럼 생활하기 힘들 때' },
+                  { icon:'Chat',  title:'관계의 갈등',        desc:'주변 사람들과 반복적인 문제가 생길 때' },
+                ].map((item,i) => (
+                  <div key={i} className="card service-card">
+                    <div className="icon-box"><I n={item.icon} s={18} c="var(--blue-deep)" /></div>
+                    <h3>{item.title}</h3>
+                    <p>{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="program-box">
+                <div className="program-box-text">
+                  <div className="label-tag">프로그램</div>
+                  <h3>전문가와 함께하는<br />1:1 맞춤형 치유 과정</h3>
+                  <p>개인의 고유한 특성을 존중하며, 과학적이고 입증된 상담 기법을 통해 마음의 근본적인 원인을 찾고 건강한 변화를 이끌어냅니다.</p>
+                  <div className="program-tags">
+                    {['개인 심리상담','청소년/성인 검사','정서 발달 지원','커플/가족 상담'].map((t,i) => (
+                      <div key={i} className="program-tag">
+                        <div className="tag-dot"><I n="Chev" s={11} c="white" /></div>
+                        {t}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {/* PC에서만 보이는 장식 원 */}
+                <div className="program-float">
+                  <div className="float" style={{width:140,height:140,borderRadius:'50%',background:'white',boxShadow:'0 12px 40px rgba(0,45,110,.13)',display:'flex',alignItems:'center',justifyContent:'center',position:'relative'}}>
+                    <I n="Heart" s={64} c="#DBEAFE" f="#DBEAFE" />
+                    <div style={{position:'absolute',top:-6,right:-6,background:'var(--blue-deep)',borderRadius:12,padding:10,boxShadow:'0 4px 14px rgba(0,45,110,.25)'}}>
+                      <I n="Quote" s={16} c="white" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ══ TAB 3 예약 안내 ══ */}
+          {tab==='reservation' && (
+            <div className="anim-fade">
+              <div className="section-head">
+                <div className="label-tag">예약 및 오시는 길</div>
+                <h2>상담 예약 및 오시는 길</h2>
+              </div>
+
+              {/* 운영시간 + 센터정보 */}
+              <div className="two-col" style={{marginBottom:12}}>
+                {/* 운영시간 */}
+                <div className="card" style={{padding:'24px 20px'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:20}}>
+                    <div className="icon-box"><I n="Clock" s={17} c="var(--blue-deep)" /></div>
+                    <h3 style={{fontWeight:800,fontSize:16,color:'var(--text-dark)'}}>운영 시간</h3>
+                  </div>
+                  <div className="info-row">
+                    <span className="time-label">평일</span>
+                    <span className="time-value">10:00 – 21:00</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="time-label">토요일</span>
+                    <span className="time-value">10:00 – 17:00</span>
+                  </div>
+                  <div className="info-row">
+                    <span style={{fontSize:14,color:'#E53E3E',fontWeight:600}}>일요일 / 공휴일</span>
+                    <span className="time-closed">휴무</span>
+                  </div>
+                  <div className="notice-box">⚠️ 상담은 100% 사전 예약제입니다.<br />미리 예약 후 방문해 주세요.</div>
+                </div>
+
+                {/* 센터 정보 */}
+                <div className="card center-info">
+                  <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:18}}>
+                    <div className="icon-box"><I n="Pin" s={17} c="var(--blue-deep)" /></div>
+                    <h3 style={{fontWeight:800,fontSize:16,color:'var(--text-dark)'}}>센터 정보</h3>
+                  </div>
+                  <div className="info-grid">
+                    <div>
+                      <p className="info-label">Address</p>
+                      <p className="info-addr">서울 중구 중림로 50-1<br />스카이천사빌딩 지하 2층</p>
+                      <p className="info-sub">서울역 2번 · 충정로역 5번</p>
+                    </div>
+                    <div>
+                      <p className="info-label">Contact</p>
+                      <p className="info-tel">0507-1350-5394</p>
+                      <p className="info-tel-sub">네이버 비즈니스 전화</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 예약 채널 */}
+              <div className="channel-grid">
+                <div className="ch-kakao">
+                  <div className="ch-head">
+                    <div className="ch-icon-kakao"><I n="Chat" s={14} c="white" f="white" /></div>
+                    <span className="ch-title-kakao">카카오톡 예약</span>
+                  </div>
+                  <p className="ch-desc-kakao">채널에서 '연세서울로심리상담센터'를 검색하세요.</p>
+                  <a href="http://pf.kakao.com/_xixbJJxj/chat" target="_blank" rel="noopener noreferrer" className="ch-btn-kakao">
+                    상담하기 <I n="Chev" s={13} c="white" />
+                  </a>
+                </div>
+                <div className="ch-naver">
+                  <div className="ch-head">
+                    <div className="ch-icon-naver"><I n="Share" s={14} c="#03C75A" /></div>
+                    <span className="ch-title-naver">네이버 블로그</span>
+                  </div>
+                  <p className="ch-desc-naver">상담 후기와 센터의 일상을 블로그에서 만나보세요.</p>
+                  <a href="https://blog.naver.com/yonseiseoullo" target="_blank" rel="noopener noreferrer" className="ch-btn-naver">
+                    블로그 방문 <I n="Chev" s={13} c="#03C75A" />
+                  </a>
+                </div>
+              </div>
+
+              {/* 지도 */}
+              <div className="card" style={{padding:'20px 16px',marginTop:12}}>
+                <div className="map-header">
+                  <span className="map-title">찾아오시는 길</span>
+                  <a href={NAVER_MAP} target="_blank" rel="noopener noreferrer" className="map-link">
+                    네이버 지도 <I n="Link" s={12} c="#03C75A" />
+                  </a>
+                </div>
+                <div className="map-area" onClick={() => window.open(NAVER_MAP,'_blank')}>
+                  <div className="map-pin-wrap">
+                    <div className="map-pin-circle float">
+                      <I n="Pin" s={36} c="var(--blue-deep)" f="#DBEAFE" />
+                    </div>
+                    <div className="map-label">
+                      <p>연세서울로심리상담센터</p>
+                      <small>중림로 50-1 스카이천사빌딩 B2</small>
+                    </div>
+                    <span className="map-hint">tap to open naver map</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </main>
+
+        {/* ── FOOTER ── */}
+        <footer className="footer">
+          <div style={{maxWidth:1100,margin:'0 auto'}}>
+            <div className="footer-grid">
+              <div>
+                <div className="footer-logo"><Logo dim /></div>
+                <p className="footer-desc">연세대학교 출신 석박사 전문가들이 모여 만든 심리상담 전문 기관입니다.<br />당신의 소중한 마음이 다시 빛날 수 있도록 곁에서 돕겠습니다.</p>
+              </div>
+              <div>
+                <p className="footer-h">Contact</p>
+                <div className="footer-contact">
+                  <div className="footer-contact-row"><I n="Phone" s={13} c="#8A99B8" /> 0507-1350-5394</div>
+                  <div className="footer-contact-row"><I n="Pin" s={13} c="#8A99B8" /> 서울 중구 중림로 50-1 스카이천사빌딩 B2</div>
+                  <div className="footer-contact-row" style={{color:'#4A7FD4',fontWeight:600}}><I n="Share" s={13} c="#4A7FD4" /> @yonsei_seoullo</div>
+                </div>
+              </div>
+              <div>
+                <p className="footer-h">Social</p>
+                <div className="footer-social">
+                  <a href="https://blog.naver.com/yonseiseoullo" target="_blank" className="social-btn" style={{background:'#03C75A',color:'white'}}>Naver Blog</a>
+                  <a href="http://pf.kakao.com/_xixbJJxj/chat" target="_blank" className="social-btn" style={{background:'#FEE500',color:'#3C1E1E'}}>KakaoTalk</a>
+                </div>
+                <div className="footer-legal">
+                  <button>이용약관</button>
+                  <button>개인정보처리방침</button>
+                </div>
+              </div>
+            </div>
+            <p className="footer-copy">© 2024 Yonsei Seoullo Counseling Center. All rights reserved.</p>
+          </div>
+        </footer>
+      </>
+    );
+  };
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
